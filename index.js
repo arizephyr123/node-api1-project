@@ -32,11 +32,10 @@ server.get("/api/users", (req, res) => {
 //insert(): calling insert passing it a user object will add it to the database and return an object with the id of the inserted user. The object looks like this: { id: 123 }.
 server.post("/api/users", (req, res) => {
   const user = req.body;
-  if (user.hasOwnProperty('name')
-    && user.hasOwnProperty("bio")) {
+  if (user.hasOwnProperty("name") && user.hasOwnProperty("bio")) {
     db.insert(user)
       .then(newUser => {
-        res.status(201).json({...newUser, ...user});
+        res.status(201).json({ ...newUser, ...user });
       })
       .catch(err => {
         console.log("error on POST //api/users:", err);
@@ -54,10 +53,33 @@ server.post("/api/users", (req, res) => {
 //returns specific user
 //GET /api/users/:id
 //findById(): this method expects an id as it's only parameter and returns the user corresponding to the id provided or an empty array if no user with that id is found.
+server.get("/api/users/:id", (req, res) => {
+  const id = req.params.id;
+
+  db.findById(id)
+    .then(res.status(500).json(res, id))
+    .catch(
+      res
+        .status(500)
+        .json({ error: "The user information could not be retrieved." })
+    );
+});
 
 //delete specific user
 //DELETE /api/users/:id
 //remove(): the remove method accepts an id as it's first parameter and upon successfully deleting the user from the database it returns the number of records deleted.
+
+server.delete("api/users/:id", (req, res) => {
+  const id = req.params.id;
+  db.delete(id)
+    .then(
+      res.status(200).json({ message: `User ID ${id} successfully deleted.` })
+    )
+    .catch(err => {
+      console.log("delete error:", err);
+      res.status(500).json({ error: "The user could not be removed." });
+    });
+});
 
 //updates specific user
 //GET /api/users/:id
