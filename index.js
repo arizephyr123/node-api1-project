@@ -1,6 +1,6 @@
 // implement your API here
 const express = require("express");
-const db = require("./data/db");
+const db = require("./data/db.js");
 
 const port = "5555";
 
@@ -53,17 +53,23 @@ server.post("/api/users", (req, res) => {
 //returns specific user
 //GET /api/users/:id
 //findById(): this method expects an id as it's only parameter and returns the user corresponding to the id provided or an empty array if no user with that id is found.
+
 server.get("/api/users/:id", (req, res) => {
   const id = req.params.id;
-  const userData = req.body;
-
   db.findById(id)
-    .then(res.status(500).json({ user: userData }))
-    .catch(
+    .then(response => {
+      if (response.length === 0) {
+        return res.status(404).json({ message: "no user found" });
+      } else {
+        return res.status(200).json(response);
+      }
+    })
+    .catch(err => {
+      console.log("error on GET to /api/users/:id", err);
       res
         .status(500)
-        .json({ error: "The user information could not be retrieved." })
-    );
+        .json({ error: `The user information could not be retrieved. ${id}` });
+    });
 });
 
 //delete specific user
@@ -91,9 +97,36 @@ server.delete("/api/users/:id", (req, res) => {
 });
 
 //updates specific user
-//GET /api/users/:id
+//PUT /api/users/:id
 //returns MODIFIED user data
 //update(): accepts two arguments, the first is the id of the user to update and the second is an object with the changes to apply. It returns the count of updated records. If the count is 1 it means the record was updated correctly.
+
+server.put("/api/users/:id", (req, res) => {
+  const id = req.params.id;
+  const { name, bio } = req.body;
+  if (!name || !bio) {
+    return res
+      .status(400)
+      .json({ errorMessage: "Please provide name and bio for the user." });
+  }
+  db.update(id, { name, bio })
+    .then(response => {
+      console.log(response);
+      if (response === 1) {
+        res.status(201).json({ message: `Update successful. //n id:${id}//n name: ${name} //n bio:${bio} `});
+      } else {
+        res
+          .status(404)
+          .json({ message: "The user with the specified ID does not exist." });
+      }
+      // response === 1 ? res.status(201).json({ message: "Update Successful" }) : res.status().json()
+      // // return res.status(201).json({ message: "Update Successful" })
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({ error: "The user information could not be modified." });
+    });
+});
 
 server.listen(port, () => {
   console.log(`Server listening on port ${port}`);
