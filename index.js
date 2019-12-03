@@ -55,9 +55,10 @@ server.post("/api/users", (req, res) => {
 //findById(): this method expects an id as it's only parameter and returns the user corresponding to the id provided or an empty array if no user with that id is found.
 server.get("/api/users/:id", (req, res) => {
   const id = req.params.id;
+  const userData = req.body;
 
   db.findById(id)
-    .then(res.status(500).json(res, id))
+    .then(res.status(500).json({ "user": userData }))
     .catch(
       res
         .status(500)
@@ -69,9 +70,9 @@ server.get("/api/users/:id", (req, res) => {
 //DELETE /api/users/:id
 //remove(): the remove method accepts an id as it's first parameter and upon successfully deleting the user from the database it returns the number of records deleted.
 
-server.delete("api/users/:id", (req, res) => {
+server.delete("/api/users/:id", (req, res) => {
   const id = req.params.id;
-  db.delete(id)
+  db.remove(id)
     .then(
       res.status(200).json({ message: `User ID ${id} successfully deleted.` })
     )
